@@ -562,33 +562,58 @@ void OperatingSystem_HandleClockInterrupt(){
 } 
 
 
+
+int comparePrioritys(int a, int b)
+{
+	if (processTable[a].queueID == USERPROCESSQUEUE && processTable[b].queueID == DAEMONSQUEUE)
+		return 1;
+	if (processTable[a].queueID == processTable[b].queueID && processTable[a].priority < processTable[b].priority)
+		return 1;
+
+	return 0;
+}
+
 void OperatingSystem_CheckSleepingProcessQueue(){
 	// Comprueba mal cual es el proceso mas prioritario de la cola de procesos listos
-	bool ProcessHasWokeUp = false;
-	for(int i=0; i <= processTable[executingProcessID].queueID; i++){
-		int AsleepProcess = Heap_poll(sleepingProcessesQueue, QUEUE_WAKEUP,  &numberOfSleepingProcesses);
-		if(AsleepProcess == numberOfClockInterrupts){ 
-			OperatingSystem_MoveToTheREADYState(sleepingProcessesQueue[i].info);
-			//OperatingSystem_PrintStatus();
-			ProcessHasWokeUp = true;
-		}
+	
+	bool processWakenUp = false;
+	int nextProcess = Heap_getFirst(sleepingProcessesQueue, numberOfSleepingProcesses);
+	while (processTable[nextProcess].whenToWakeUp == numberOfClockInterrupts) {
+		OperatingSystem_MoveToTheREADYState(Heap_poll(sleepingProcessesQueue, QUEUE_WAKEUP, &numberOfSleepingProcesses));
+		nextProcess = Heap_getFirst(sleepingProcessesQueue, numberOfSleepingProcesses);
+		processWakenUp = true;
 	}
 
-	if(ProcessHasWokeUp == true){
-		for(int i=0; i < numberOfReadyToRunProcesses[0]; i++){
-			int proceso = Heap_getFirst(readyToRunQueue[i], numberOfReadyToRunProcesses[i]);
-			if(processTable[executingProcessID].priority > processTable[proceso].priority){
-				OperatingSystem_ShowTime(SHORTTERMSCHEDULE);
-				ComputerSystem_DebugMessage(121, SHORTTERMSCHEDULE, processTable[executingProcessID].priority, processTable[executingProcessID],
-																	processTable[i].priority, processTable[i]);
-				OperatingSystem_PreemptRunningProcess();
-				OperatingSystem_Dispatch(i);
-				OperatingSystem_PrintStatus();
+	// Checks if there has been any process waken up
+	if (processWakenUp == true) {
+		for (int i=0;i<=processTable[executingProcessID].queueID;i++) {
+			int nextProcess = Heap_getFirst(readyToRunQueue[i], numberOfReadyToRunProcesses[i]);
+			if(processTable[nextProcess].queueID == processTable[executingProcessID].queueID){
+				if (processTable[nextProcess].priority < processTable[executingProcessID].priority)
+				//if (comparePrioritys(nextProcess, executingProcessID))
+				{
+					OperatingSystem_ShowTime(SHORTTERMSCHEDULE);
+					ComputerSystem_DebugMessage(121, SHORTTERMSCHEDULE, executingProcessID, programList[processTable[executingProcessID].programListIndex]->executableName, nextProcess, programList[processTable[nextProcess].programListIndex]->executableName);
+					OperatingSystem_PreemptRunningProcess();
+					OperatingSystem_Dispatch(OperatingSystem_ShortTermScheduler());
+					OperatingSystem_PrintStatus();
+					break;
+				}
 			}
 		}
-	}
-	ProcessHasWokeUp = false;
+	} 
+	processWakenUp = false;
+	return; 
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Move a process to the BLOCKED state: it will be inserted, depending on its priority, in
 // a queue of identifiers of BLOCKED processes
