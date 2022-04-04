@@ -579,14 +579,15 @@ void OperatingSystem_CheckSleepingProcessQueue(){
 		OperatingSystem_PrintStatus();
 		for (int i=0;i<=processTable[executingProcessID].queueID;i++) {
 			int nextProcess = Heap_getFirst(readyToRunQueue[i], numberOfReadyToRunProcesses[i]);
-			if (processTable[nextProcess].priority < processTable[executingProcessID].priority)
+			
+			if ((processTable[nextProcess].queueID == processTable[executingProcessID].queueID && processTable[nextProcess].priority < processTable[executingProcessID].priority) 
+				|| (processTable[nextProcess].queueID == USERPROCESSQUEUE && processTable[executingProcessID].queueID == DAEMONSQUEUE))
 			{
 				OperatingSystem_ShowTime(SHORTTERMSCHEDULE);
 				ComputerSystem_DebugMessage(121, SHORTTERMSCHEDULE, executingProcessID, programList[processTable[executingProcessID].programListIndex]->executableName, nextProcess, programList[processTable[nextProcess].programListIndex]->executableName);
 				OperatingSystem_PreemptRunningProcess();
 				OperatingSystem_Dispatch(OperatingSystem_ShortTermScheduler());
 				OperatingSystem_PrintStatus();
-				
 			}
 				
 		}
