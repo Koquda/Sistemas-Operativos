@@ -136,46 +136,50 @@ void OperatingSystem_Initialize(int daemonsIndex) {
 // Initially, it creates a process from each program specified in the 
 // 			command line and daemons programs
 int OperatingSystem_LongTermScheduler() {
-	
+  
 	int PID, i,
 		numberOfSuccessfullyCreatedProcesses=0;
-	
-	for (i=0; programList[i]!=NULL && i<PROGRAMSMAXNUMBER ; i++) {
-		PID=OperatingSystem_CreateProcess(i);
-		if(PID==NOFREEENTRY){
-			OperatingSystem_ShowTime(ERROR);
-			ComputerSystem_DebugMessage(103,ERROR, programList[i]->executableName);
-		}
-		else if(PID==PROGRAMNOTVALID){
-			OperatingSystem_ShowTime(ERROR);
-			ComputerSystem_DebugMessage(104,ERROR, 
-						programList[i]->executableName, "--- invalid priority or size ---]");
-		}
-		else if(PID==PROGRAMDOESNOTEXIST){
-			OperatingSystem_ShowTime(ERROR);
-			ComputerSystem_DebugMessage(104,ERROR, 
-						programList[i]->executableName, "--- it does not exist ---");
-		}
-		else if(PID==TOOBIGPROCESS){
-			OperatingSystem_ShowTime(ERROR);
-			ComputerSystem_DebugMessage(105,ERROR, programList[i]->executableName);
-		}
-		else{
-			numberOfSuccessfullyCreatedProcesses++;
-			if (programList[i]->type==USERPROGRAM) 
-				numberOfNotTerminatedUserProcesses++;
-			// Move process to the ready state
-			OperatingSystem_MoveToTheREADYState(PID);
-			
-		}
+
+	// Exercise 3 V3
+	while(OperatingSystem_IsThereANewProgram() == YES){
 		
+		i = Heap_poll(arrivalTimeQueue, QUEUE_ARRIVAL, &numberOfProgramsInArrivalTimeQueue);
+		//for (i=0; programList[i]!=NULL && i<PROGRAMSMAXNUMBER ; i++) {
+			PID=OperatingSystem_CreateProcess(i);
+			if(PID==NOFREEENTRY){
+				OperatingSystem_ShowTime(ERROR);
+				ComputerSystem_DebugMessage(103,ERROR, programList[i]->executableName);
+			}
+			else if(PID==PROGRAMNOTVALID){
+				OperatingSystem_ShowTime(ERROR);
+				ComputerSystem_DebugMessage(104,ERROR, 
+							programList[i]->executableName, "--- invalid priority or size ---]");
+			}
+			else if(PID==PROGRAMDOESNOTEXIST){
+				OperatingSystem_ShowTime(ERROR);
+				ComputerSystem_DebugMessage(104,ERROR, 
+							programList[i]->executableName, "--- it does not exist ---");
+			}
+			else if(PID==TOOBIGPROCESS){
+				OperatingSystem_ShowTime(ERROR);
+				ComputerSystem_DebugMessage(105,ERROR, programList[i]->executableName);
+			}
+			else{
+				numberOfSuccessfullyCreatedProcesses++;
+				if (programList[i]->type==USERPROGRAM) 
+					numberOfNotTerminatedUserProcesses++;
+				// Move process to the ready state
+				OperatingSystem_MoveToTheREADYState(PID);
+				
+			}
+			
+		//}
 	}
 
 	if(numberOfSuccessfullyCreatedProcesses > 0){
 		// Exercise 7-d V2
 			OperatingSystem_PrintStatus();
 	}
-
 
 	// Return the number of succesfully created processes
 	return numberOfSuccessfullyCreatedProcesses;
