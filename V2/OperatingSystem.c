@@ -484,11 +484,15 @@ void OperatingSystem_HandleSystemCall() {
 			OperatingSystem_PrintStatus();
 			break;
 		case SYSCALL_YIELD:
-			nextProgram = Heap_getFirst(readyToRunQueue[processTable[executingProcessID].queueID],numberOfReadyToRunProcesses[processTable[executingProcessID].queueID]);
+			nextProgram = Heap_getFirst(readyToRunQueue[processTable[executingProcessID].queueID], numberOfReadyToRunProcesses[processTable[executingProcessID].queueID]);
+
 			if((processTable[executingProcessID].priority) == (processTable[nextProgram].priority)){
+
 				OperatingSystem_ShowTime(SHORTTERMSCHEDULE);
 				ComputerSystem_DebugMessage(115,SHORTTERMSCHEDULE,executingProcessID,programList[processTable[executingProcessID].programListIndex]->executableName,
 											nextProgram, programList[processTable[nextProgram].programListIndex]->executableName);
+
+
 				OperatingSystem_PreemptRunningProcess();
 				OperatingSystem_Dispatch(OperatingSystem_ShortTermScheduler());
 				// Exercise 7-a V2
@@ -497,9 +501,11 @@ void OperatingSystem_HandleSystemCall() {
 			break;
 		// Exercise 5 V2
 		case SYSCALL_SLEEP:
-			processTable[executingProcessID].whenToWakeUp = (abs(Processor_GetAccumulator())+numberOfClockInterrupts+1);
+			processTable[executingProcessID].whenToWakeUp = abs(Processor_GetAccumulator()) + numberOfClockInterrupts + 1;
+
 			OperatingSystem_MoveToTheBLOCKEDState();
 			OperatingSystem_Dispatch(OperatingSystem_ShortTermScheduler());
+
 			OperatingSystem_PrintStatus();
 			break;
 	}
@@ -529,7 +535,7 @@ void OperatingSystem_PrintReadyToRunQueue(){
 
 	for(int qCounter=0; qCounter<NUMBEROFQUEUES; qCounter++){
 		ComputerSystem_DebugMessage(113, SHORTTERMSCHEDULE);
-		// Cuando es la segunda cola mete una tabulación más
+		
 		if(qCounter==1){
 			ComputerSystem_DebugMessage(113, SHORTTERMSCHEDULE);
 		}
@@ -585,13 +591,15 @@ void OperatingSystem_CheckSleepingProcessQueue(){
 			{
 				OperatingSystem_ShowTime(SHORTTERMSCHEDULE);
 				ComputerSystem_DebugMessage(121, SHORTTERMSCHEDULE, executingProcessID, programList[processTable[executingProcessID].programListIndex]->executableName, nextProcess, programList[processTable[nextProcess].programListIndex]->executableName);
+				
 				OperatingSystem_PreemptRunningProcess();
 				OperatingSystem_Dispatch(OperatingSystem_ShortTermScheduler());
 				OperatingSystem_PrintStatus();
 			}
 				
 		}
-	} else if (numberOfNotTerminatedUserProcesses == 0 && numberOfSleepingProcesses == 0) {
+	} else if (numberOfSleepingProcesses == 0 && numberOfNotTerminatedUserProcesses == 0) {
+
 			OperatingSystem_ReadyToShutdown();
 	}
 	
@@ -604,10 +612,10 @@ void OperatingSystem_CheckSleepingProcessQueue(){
 // a queue of identifiers of BLOCKED processes
 void OperatingSystem_MoveToTheBLOCKEDState() {
 	if (Heap_add(executingProcessID, sleepingProcessesQueue,QUEUE_WAKEUP , &numberOfSleepingProcesses,PROCESSTABLEMAXSIZE)>=0) {
-		int wtwu = abs(Processor_GetAccumulator()) + numberOfClockInterrupts + 1;
-		processTable[executingProcessID].whenToWakeUp = wtwu;
+		
 		OperatingSystem_ShowTime(SYSPROC);
 		processTable[executingProcessID].state=BLOCKED;
+
 		ComputerSystem_DebugMessage(110,SYSPROC,executingProcessID,programList[processTable[executingProcessID].programListIndex]->executableName,statesNames[EXECUTING],statesNames[BLOCKED]);
 		OperatingSystem_SaveContext(executingProcessID);
 	} 
