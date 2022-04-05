@@ -109,7 +109,8 @@ void OperatingSystem_Initialize(int daemonsIndex) {
 
 	// Create all user processes from the information given in the command line
 	OperatingSystem_LongTermScheduler();
-	if(numberOfNotTerminatedUserProcesses==0){
+	// Exercise 5a V3
+	if(numberOfProgramsInArrivalTimeQueue==0){
 		OperatingSystem_ReadyToShutdown();
 	}
 
@@ -144,36 +145,33 @@ int OperatingSystem_LongTermScheduler() {
 	while(OperatingSystem_IsThereANewProgram() == YES){
 		
 		i = Heap_poll(arrivalTimeQueue, QUEUE_ARRIVAL, &numberOfProgramsInArrivalTimeQueue);
-		//for (i=0; programList[i]!=NULL && i<PROGRAMSMAXNUMBER ; i++) {
-			PID=OperatingSystem_CreateProcess(i);
-			if(PID==NOFREEENTRY){
-				OperatingSystem_ShowTime(ERROR);
-				ComputerSystem_DebugMessage(103,ERROR, programList[i]->executableName);
-			}
-			else if(PID==PROGRAMNOTVALID){
-				OperatingSystem_ShowTime(ERROR);
-				ComputerSystem_DebugMessage(104,ERROR, 
-							programList[i]->executableName, "--- invalid priority or size ---]");
-			}
-			else if(PID==PROGRAMDOESNOTEXIST){
-				OperatingSystem_ShowTime(ERROR);
-				ComputerSystem_DebugMessage(104,ERROR, 
-							programList[i]->executableName, "--- it does not exist ---");
-			}
-			else if(PID==TOOBIGPROCESS){
-				OperatingSystem_ShowTime(ERROR);
-				ComputerSystem_DebugMessage(105,ERROR, programList[i]->executableName);
-			}
-			else{
-				numberOfSuccessfullyCreatedProcesses++;
-				if (programList[i]->type==USERPROGRAM) 
-					numberOfNotTerminatedUserProcesses++;
-				// Move process to the ready state
-				OperatingSystem_MoveToTheREADYState(PID);
-				
-			}
+		PID=OperatingSystem_CreateProcess(i);
+		if(PID==NOFREEENTRY){
+			OperatingSystem_ShowTime(ERROR);
+			ComputerSystem_DebugMessage(103,ERROR, programList[i]->executableName);
+		}
+		else if(PID==PROGRAMNOTVALID){
+			OperatingSystem_ShowTime(ERROR);
+			ComputerSystem_DebugMessage(104,ERROR, 
+						programList[i]->executableName, "--- invalid priority or size ---]");
+		}
+		else if(PID==PROGRAMDOESNOTEXIST){
+			OperatingSystem_ShowTime(ERROR);
+			ComputerSystem_DebugMessage(104,ERROR, 
+						programList[i]->executableName, "--- it does not exist ---");
+		}
+		else if(PID==TOOBIGPROCESS){
+			OperatingSystem_ShowTime(ERROR);
+			ComputerSystem_DebugMessage(105,ERROR, programList[i]->executableName);
+		}
+		else{
+			numberOfSuccessfullyCreatedProcesses++;
+			if (programList[i]->type==USERPROGRAM) 
+				numberOfNotTerminatedUserProcesses++;
+			// Move process to the ready state
+			OperatingSystem_MoveToTheREADYState(PID);
 			
-		//}
+		}
 	}
 
 	if(numberOfSuccessfullyCreatedProcesses > 0){
@@ -453,7 +451,7 @@ void OperatingSystem_TerminateProcess() {
 		// One more user process that has terminated
 		numberOfNotTerminatedUserProcesses--;
 	
-	if (numberOfNotTerminatedUserProcesses==0) {
+	if (numberOfNotTerminatedUserProcesses==0 && numberOfProgramsInArrivalTimeQueue == 0) { // El numberOfProgramsInArrivalTimeQueue == 0 es el ejercicio 5c de la V3
 		if (executingProcessID==sipID) {
 			// finishing sipID, change PC to address of OS HALT instruction
 			OperatingSystem_TerminatingSIP();
@@ -583,16 +581,21 @@ void OperatingSystem_HandleClockInterrupt(){
 void OperatingSystem_CheckSleepingProcessQueue(){
 	
 	bool processWakenUp = false;
+	bool processCreated = false;
 	int nextProcess = Heap_getFirst(sleepingProcessesQueue, numberOfSleepingProcesses);
 	while (processTable[nextProcess].whenToWakeUp == numberOfClockInterrupts) {
 		OperatingSystem_MoveToTheREADYState(Heap_poll(sleepingProcessesQueue, QUEUE_WAKEUP, &numberOfSleepingProcesses));
 		nextProcess = Heap_getFirst(sleepingProcessesQueue, numberOfSleepingProcesses);
 		processWakenUp = true;
-		
+	}
+
+	// Exercise 4a and 4b V3
+	if(OperatingSystem_LongTermScheduler()>0){
+		processCreated = true;
 	}
 
 	// Checks if there has been any process waken up
-	if (processWakenUp == true) {
+	if (processWakenUp == true || processCreated == true) {
 		OperatingSystem_PrintStatus();
 		for (int i=0;i<=processTable[executingProcessID].queueID;i++) {
 			int nextProcess = Heap_getFirst(readyToRunQueue[i], numberOfReadyToRunProcesses[i]);
@@ -609,11 +612,12 @@ void OperatingSystem_CheckSleepingProcessQueue(){
 			}
 				
 		}
-	} else if (numberOfSleepingProcesses == 0 && numberOfNotTerminatedUserProcesses == 0) {
+	} else if (numberOfSleepingProcesses == 0 && numberOfNotTerminatedUserProcesses == 0 && numberOfProgramsInArrivalTimeQueue == 0) { // El numberOfProgramsInArrivalTimeQueue == 0 es el ejercicio 5b de la V3
 
 			OperatingSystem_ReadyToShutdown();
 	}
 	
+	processCreated = false;
 	processWakenUp = false;
 	return;
 }
