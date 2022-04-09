@@ -1,0 +1,32 @@
+En el archivo messagesSTD.txt:
+
+
+En el archivo OperatingSystem.c:
+- Definicion de la variable que contendrá en valor de la prioridad que tenía antes de ser cambiada
+	//Examen V2-2022
+	int prevPrio = 0;
+
+- Impresión por pantalla del cambio de prioridad
+	//Examen V2-2022
+	OperatingSystem_ShowTime(EXAM);
+	ComputerSystem_DebugMessage(122,EXAM, executingProcessID,
+				programList[processTable[executingProcessID].programListIndex]->executableName, 
+				prevPrio, processTable[executingProcessID].priority);
+
+- Guardar el valor de la prioridad anterior en la variable prevPrio
+	//Examen V2-2022
+	prevPrio = processTable[executingProcessID].priority;
+	///////////////
+
+- Comprobación de si es un programa de usuario o demonio
+	//Examen V2-2022
+	if(programList[processTable[executingProcessID].programListIndex]->type == USERPROGRAM){
+		processTable[executingProcessID].priority = processTable[nextProcess].priority;
+	}else if(programList[processTable[executingProcessID].programListIndex]->type == DAEMONPROGRAM){
+		if(processTable[executingProcessID].priority-25 < 0){
+			processTable[executingProcessID].priority = 0;
+		}else{
+			processTable[executingProcessID].priority = processTable[executingProcessID].priority-25;
+		}
+	}
+				

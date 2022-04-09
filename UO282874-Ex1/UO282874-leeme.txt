@@ -1,0 +1,47 @@
+En el archivo messagesSTD.txt:
+	//Examen V2-2022
+	122,@MSyscall [%s] has been executed [%d] times@@\n
+
+
+En el archivo OperatingSystem.c:
+- En la definición de las funciones
+	//Examen V2-2022
+	void OperatingSystem_PrintSystemCalls();
+
+- Definición e inicialización de las variables que tengan el valor de las veces que se llamó a cada una:
+	//Examen V2-2022
+	int Syscall_end_times = 0;
+	int Syscall_yield_times = 0;
+	int Syscall_printexecpid_times = 0;
+	int Syscall_sleep_times = 0;
+
+- Llamada a la función que imprime los mensajes despues del mensaje de que el sistema se va a apagar:
+	//Examen V2-2022
+	OperatingSystem_PrintSystemCalls();
+
+- Cada vez que se llame a una se aumenta el contador:
+	//Examen V2-2022
+	Syscall_printexecpid_times++;
+
+	//Examen V2-2022
+	Syscall_end_times++;
+
+	//Examen V2-2022
+	Syscall_yield_times++;
+
+	//Examen V2-2022
+	Syscall_sleep_times++;
+
+- Cuerpo de la función que imprime los mensajes:
+	//Examen V2-2022
+	void OperatingSystem_PrintSystemCalls(){
+		OperatingSystem_ShowTime(EXAM);
+		ComputerSystem_DebugMessage(122,EXAM,"END", Syscall_end_times);
+		OperatingSystem_ShowTime(EXAM);
+		ComputerSystem_DebugMessage(122,EXAM,"YIELD", Syscall_yield_times);
+		OperatingSystem_ShowTime(EXAM);
+		ComputerSystem_DebugMessage(122,EXAM,"PRINTEXECPID", Syscall_printexecpid_times);
+		OperatingSystem_ShowTime(EXAM);
+		ComputerSystem_DebugMessage(122,EXAM,"SLEEP", Syscall_sleep_times);
+	}
+
