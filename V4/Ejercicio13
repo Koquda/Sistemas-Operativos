@@ -1,0 +1,26 @@
+13. Estudia la función OperatingSystem_SaveContext()
+
+
+a. ¿Por qué hace falta salvar el valor actual del registro PC del procesador y de la PSW?
+
+Hace falta salavr el valor del registro PC y de la PSW porque cuando se produce, por ejemplo, una
+interrupción, se ejecuta la rutina de interrupción y el registro del PC y la PSW cambian, si no
+se guardasen no se podría retorna a donde se produjo el cambio.
+
+
+b. ¿Sería necesario salvar algún valor más?
+
+Sería necesario salvar tambien el acumulador
+
+
+c. A la vista de lo contestado en los apartados a) y b) anteriores, ¿sería necesario realizar
+   alguna modificación en la función OperatingSystem_RestoreContext()? ¿Por qué?
+
+Se tendría que guardar tambien el acumulador para poder restaurar su valor cuando se continue la ejecución
+del proceso correspondiente
+
+
+d. ¿Afectarían los cambios anteriores a la implementación de alguna otra función o a 
+   la definición de alguna estructura de datos? 
+
+Si, afectarían porque se tendría que añadir el campo correspondiente para el acumulador
